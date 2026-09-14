@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: "PHP 8.3"
+            profile: php83
+            service: php83
+          - name: "PHP 8.4"
+            profile: php84
+            service: php84
+          - name: "PHP 8.5"
+            profile: php85
+            service: php85
+          - name: "PHP 8.5, Livewire 3"
+            profile: livewire3
+            service: php85-livewire3
+
+    name: ${{ matrix.name }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: DOCKER_BUILDKIT=0 docker compose --profile ${{ matrix.profile }} build
+
+      - name: Run tests
+        run: docker compose --profile ${{ matrix.profile }} up --abort-on-container-exit --exit-code-from ${{ matrix.service }}
